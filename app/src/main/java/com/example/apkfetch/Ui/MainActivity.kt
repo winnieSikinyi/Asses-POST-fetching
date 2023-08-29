@@ -2,14 +2,18 @@ package com.example.apkfetch.Ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
+import androidx.activity.viewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.example.apkfetch.R
-import com.example.apkfetch.ViewModel.PostViewModel
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.apkfetch.apis.ApiInterface
 import com.example.apkfetch.Repository.PostRepository
+import com.example.apkfetch.ViewModel.PostsViewModel
+import com.example.apkfetch.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
-    val postViewModel:PostsViewModel by viewModels()
+    val postViewModel: PostsViewModel by viewModels()
     lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,15 +25,16 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         postViewModel.fetchPosts()
-        postViewModel.postLiveData.observe(this,Observer {postsList->
+        postViewModel.postLiveData.observe(this, Observer {postsList->
+            var postAdapt=PostrvAdapter(postsList ?: emptyList())
+            binding.rvRecycler.layoutManager=LinearLayoutManager(this@MainActivity)
+            binding.rvRecycler.adapter=postAdapt
             Toast.makeText(baseContext,
                 "fetched ${postsList?.size}posts",
                 Toast.LENGTH_LONG
             ).show()
-            binding.rvPosts.layoutManager=LinearLayoutManager(this@MainActivity)
-            binding.rvPosts.adapter=PostRvAdapter(postsList)
         })
-        postViewModel.errorLiveData.observe(this,Observer{error->
+        postViewModel.errorLiveData.observe(this,{error->
             Toast.makeText(baseContext,error, Toast.LENGTH_LONG).show()
         })
     }
